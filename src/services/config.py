@@ -67,7 +67,7 @@ class Settings:
 
     @property
     def groq_model(self) -> str:
-        return _get("GROQ_MODEL", "llama-3.3-70b-versatile")
+        return _get("GROQ_MODEL", "openai/gpt-oss-20b")
 
     @property
     def groq_timeout(self) -> float:

@@ -25,7 +25,7 @@ def test_provider_status_groq(monkeypatch):
     monkeypatch.setenv("GROQ_API_KEY", "gq-test")
     provider, model, key_present, _ = llm_factory.provider_status()
     assert provider == "groq" and key_present
-    assert model == "llama-3.3-70b-versatile"
+    assert model == "openai/gpt-oss-20b"
 
 
 def test_missing_key_reports_offline(monkeypatch):
