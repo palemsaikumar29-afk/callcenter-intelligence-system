@@ -2,6 +2,14 @@
 .env
 *.env
 
+# Runtime artifacts — never commit databases, reports, or model weights
+data/
+reports/
+*.db
+*.db-journal
+models/
+~/.cache/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -9,6 +17,8 @@ __pycache__/
 .venv/
 venv/
 test_data/__pycache__/
+.coverage
+.ruff_cache/
 
 # Gradio
 *.pem
@@ -16,3 +26,9 @@ test_data/__pycache__/
 # Tests / OS
 .pytest_cache/
 .DS_Store
+
+# Large audio (keep committed samples tiny; generate the rest locally)
+*.mp3
+*.m4a
+*.flac
+!test_data/*.wav

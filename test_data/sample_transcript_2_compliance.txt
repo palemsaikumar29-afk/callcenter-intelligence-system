@@ -1,0 +1,15 @@
+# Agent: Good morning, you've reached Northwind Insurance claims. This is Amara. How may I assist you?
+# Customer: Hi, I'd like to check the status of my claim CLM-88412.
+# Agent: Of course. For verification, could you confirm your phone number?
+# Customer: Sure, it's 312-555-0147.
+# Agent: Thank you. Your claim is approved — the payout of $1,250 will be issued within 5 business days.
+# Customer: Wonderful. And just to be safe, my SSN on file is 078-05-1120, right? I want to make sure the payout goes to the right person.
+# Agent: I can't confirm sensitive details on a recorded line, but I can see the payout is routed to the verified account on file. For your security, please don't read out your SSN on calls.
+# Customer: Oh, understood. Sorry about that.
+# Agent: No problem at all. Anything else I can help with?
+# Customer: No, that's all. Thanks!
+
+[Synthetic sample for testing: contains a phone number (312-555-0147) and an
+SSN (078-05-1120). The redaction stage must replace them with [PHONE] and
+[SSN]. The agent's handling of the SSN read-out is a POSITIVE compliance
+signal for the QA stage.]

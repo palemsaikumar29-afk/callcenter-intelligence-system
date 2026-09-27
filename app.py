@@ -1,39 +1,37 @@
-"""Call Center Intelligence System — Gradio UI.
+"""Call Center Intelligence System — entrypoint.
 
-Expected interface (per instructor guidance): Gradio chat + observability
-dashboard. This is the Phase 1 shell — agent logic lands in Phase 2 once the
-official course specification is delivered.
-
-Keys via environment (all optional — the app degrades gracefully):
-    OPENAI_API_KEY   LLM agents
-    TAVILY_API_KEY   web lookup fallback (if the spec requires it)
-    SERPAPI_API_KEY  web lookup fallback (if the spec requires it)
+Serves the Gradio UI at http://localhost:7860 (CC_HOST/CC_PORT to change).
+The Whisper model is loaded ONCE here at startup as a module-level singleton
+— never inside a request handler. All secrets come from the environment.
 """
 from __future__ import annotations
 
-import gradio as gr
+import logging
 
-import callcenter
+from src.agents import nodes
+from src.database.db import CallCenterDB
+from src.services import transcription as transcription_svc
+from src.services.config import settings
+from src.ui.app import build_app
 
-
-def phase1_notice() -> str:
-    return (
-        f"Call Center Intelligence System v{callcenter.__version__} — "
-        "Phase 1 scaffold. Agent logic arrives in Phase 2 "
-        "(waiting on the official course specification)."
-    )
-
-
-def build_demo() -> gr.Blocks:
-    with gr.Blocks(title="Call Center Intelligence") as demo:
-        gr.Markdown("# 📞 Call Center Intelligence System")
-        gr.Markdown(phase1_notice())
-        gr.Textbox(label="Phase 1 status", value=phase1_notice(),
-                   interactive=False)
-    return demo
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger("callcenter")
 
 
-demo = build_demo()
+def main() -> None:
+    db = CallCenterDB(settings.db_path)
+    nodes.set_db(db)
+    if settings.preload_model:
+        try:
+            transcription_svc.preload_model()
+            log.info("whisper model preloaded")
+        except RuntimeError as exc:
+            log.warning("whisper preload failed (transcription will error): %s",
+                        exc)
+    build_app(db).launch(server_name=settings.app_host,
+                         server_port=settings.app_port,
+                         share=False)
+
 
 if __name__ == "__main__":
-    demo.launch()
+    main()

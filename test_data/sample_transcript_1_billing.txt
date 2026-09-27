@@ -1,0 +1,14 @@
+# Agent: Thank you for calling Acme Broadband support, this is Daniel speaking. How can I help you today?
+# Customer: Hi Daniel, my internet has been dropping every evening this week around 8pm. It's really frustrating.
+# Agent: I'm sorry to hear that. Let me run a line test on your connection right away.
+# Customer: My account email is maria.santos@example.com, by the way.
+# Agent: Thanks. The line test shows signal noise on your street node. I'm booking a technician visit for tomorrow between 9 and 12.
+# Customer: That works. Will I be charged for the visit?
+# Agent: No charge — it's a network-side issue, so the visit is free. You'll get an SMS confirmation shortly.
+# Customer: Great, thank you so much for the quick help.
+# Agent: You're welcome! Is there anything else I can do for you today?
+# Customer: No, that's everything. Have a good day.
+
+[This is a synthetic sample transcript for testing the redaction and
+summarization stages. It contains one email address (maria.santos@example.com)
+which the PII redaction stage must replace with [EMAIL] before any LLM call.]
