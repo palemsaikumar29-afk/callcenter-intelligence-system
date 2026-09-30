@@ -4,6 +4,7 @@ Every stage of the pipeline speaks these contracts — nothing passes
 unstructured dicts between nodes except the LangGraph TypedDict state,
 which itself carries these models' serialized forms.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal

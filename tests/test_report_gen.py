@@ -1,4 +1,5 @@
 """Report generation: JSON validity and PDF structure."""
+
 import json
 
 from src.services import report_gen
@@ -22,16 +23,36 @@ def _report():
         },
         "qa": {
             "dimensions": [
-                {"name": "Greeting & Professionalism", "score": 4,
-                 "weight": 0.15, "rationale": "Good"},
-                {"name": "Problem Resolution", "score": 4, "weight": 0.30,
-                 "rationale": "Good"},
-                {"name": "Communication Clarity", "score": 4, "weight": 0.20,
-                 "rationale": "Good"},
-                {"name": "Compliance & Policy Adherence", "score": 4,
-                 "weight": 0.25, "rationale": "Good"},
-                {"name": "Empathy & Customer Experience", "score": 4,
-                 "weight": 0.10, "rationale": "Good"},
+                {
+                    "name": "Greeting & Professionalism",
+                    "score": 4,
+                    "weight": 0.15,
+                    "rationale": "Good",
+                },
+                {
+                    "name": "Problem Resolution",
+                    "score": 4,
+                    "weight": 0.30,
+                    "rationale": "Good",
+                },
+                {
+                    "name": "Communication Clarity",
+                    "score": 4,
+                    "weight": 0.20,
+                    "rationale": "Good",
+                },
+                {
+                    "name": "Compliance & Policy Adherence",
+                    "score": 4,
+                    "weight": 0.25,
+                    "rationale": "Good",
+                },
+                {
+                    "name": "Empathy & Customer Experience",
+                    "score": 4,
+                    "weight": 0.10,
+                    "rationale": "Good",
+                },
             ],
             "overall_score": 4.0,
             "compliance_flags": [],
@@ -39,10 +60,13 @@ def _report():
         },
         "transcript": {
             "segments": [
-                {"start": 0.0, "end": 2.0, "speaker": "Agent",
-                 "text": "Hello"},
-                {"start": 3.0, "end": 5.0, "speaker": "Customer",
-                 "text": "My bill is wrong"},
+                {"start": 0.0, "end": 2.0, "speaker": "Agent", "text": "Hello"},
+                {
+                    "start": 3.0,
+                    "end": 5.0,
+                    "speaker": "Customer",
+                    "text": "My bill is wrong",
+                },
             ],
             "full_text": "Agent: Hello Customer: My bill is wrong",
             "language": "en",
@@ -65,8 +89,7 @@ def test_pdf_magic_and_nonempty():
 
 
 def test_write_report_files(tmp_path):
-    paths = report_gen.write_report_files(_report(),
-                                         reports_dir=str(tmp_path))
+    paths = report_gen.write_report_files(_report(), reports_dir=str(tmp_path))
     assert paths["pdf_path"].endswith("abc123.pdf")
     assert paths["json_path"].endswith("abc123.json")
     with open(paths["json_path"]) as f:

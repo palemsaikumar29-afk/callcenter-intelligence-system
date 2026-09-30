@@ -3,6 +3,7 @@
 No secrets, model names, timeouts, or provider choices are hardcoded here.
 See .env.example for the full list with inline documentation.
 """
+
 from __future__ import annotations
 
 import os

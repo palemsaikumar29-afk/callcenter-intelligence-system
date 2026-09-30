@@ -4,6 +4,7 @@ Each node receives the full state and returns a *partial* update dict;
 LangGraph merges it. Failures are isolated: a node records its error and
 routes to the terminal error outcome instead of crashing the graph.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -31,9 +32,12 @@ class PipelineState(TypedDict, total=False):
     error: dict[str, Any] | None
 
 
-def new_state(call_id: str, audio_path: str,
-              caller_id: str | None = None,
-              department: str | None = None) -> PipelineState:
+def new_state(
+    call_id: str,
+    audio_path: str,
+    caller_id: str | None = None,
+    department: str | None = None,
+) -> PipelineState:
     return PipelineState(
         call_id=call_id,
         audio_path=audio_path,

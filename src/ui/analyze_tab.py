@@ -1,5 +1,6 @@
 """Analyze Call tab: upload audio (file or mic), run the 7-stage pipeline,
 and review transcript, summary, QA scorecard, plus PDF/JSON downloads."""
+
 from __future__ import annotations
 
 import gradio as gr
@@ -20,8 +21,7 @@ def _fmt_transcript(transcript: dict | None) -> str:
 def _fmt_summary(summary: dict | None) -> str:
     if not summary:
         return "_No summary available._"
-    md = [f"**Purpose:** {summary.get('purpose', '')}", "",
-          "**Key points:**"]
+    md = [f"**Purpose:** {summary.get('purpose', '')}", "", "**Key points:**"]
     md += [f"- {kp}" for kp in summary.get("key_points", [])] or ["- —"]
     md += ["", "**Action items:**"]
     md += [f"- [ ] {a}" for a in summary.get("action_items", [])] or ["- —"]
@@ -39,8 +39,10 @@ def _fmt_qa(qa: dict | None) -> str:
         return "_No QA score available._"
     md = [f"## Overall: {qa.get('overall_score', 0):.2f} / 5", ""]
     for d in qa.get("dimensions", []):
-        md.append(f"- **{d['name']}** ({d['weight']:.0%}): "
-                  f"{d['score']}/5 — {d.get('rationale', '')}")
+        md.append(
+            f"- **{d['name']}** ({d['weight']:.0%}): "
+            f"{d['score']}/5 — {d.get('rationale', '')}"
+        )
     flags = qa.get("compliance_flags", [])
     md += ["", f"**Compliance flags:** {', '.join(flags) if flags else 'none'}"]
     if qa.get("offline"):
@@ -48,15 +50,22 @@ def _fmt_qa(qa: dict | None) -> str:
     return "\n".join(md)
 
 
-def analyze_call(audio_path: str | None, caller_id: str,
-                 department: str, db: CallCenterDB):
+def analyze_call(
+    audio_path: str | None, caller_id: str, department: str, db: CallCenterDB
+):
     if not audio_path:
-        return ("⚠️ Please upload an audio file or record with the microphone.",
-                "", "", "", None, None)
+        return (
+            "⚠️ Please upload an audio file or record with the microphone.",
+            "",
+            "",
+            "",
+            None,
+            None,
+        )
     try:
-        final = run_pipeline(audio_path, db,
-                             caller_id=caller_id or None,
-                             department=department or None)
+        final = run_pipeline(
+            audio_path, db, caller_id=caller_id or None, department=department or None
+        )
     except Exception as exc:  # noqa: BLE001 - surfaced in UI
         return (f"❌ Pipeline failed: {exc}", "", "", "", None, None)
 
@@ -67,8 +76,10 @@ def analyze_call(audio_path: str | None, caller_id: str,
 
     report = final.get("report", {})
     paths = final.get("report_paths", {})
-    header = (f"✅ Analysis complete — `{report.get('call_id', '')}`  "
-              f"({report.get('duration_sec', 0):.1f}s)")
+    header = (
+        f"✅ Analysis complete — `{report.get('call_id', '')}`  "
+        f"({report.get('duration_sec', 0):.1f}s)"
+    )
     if status == "supervisor_review":
         header += "  ⚠️ **Flagged for supervisor review** (compliance)."
     return (
@@ -81,14 +92,18 @@ def analyze_call(audio_path: str | None, caller_id: str,
     )
 
 
-def build_analyze_tab(db: CallCenterDB) -> tuple[gr.Audio, gr.Textbox,
-                                                 gr.Textbox, gr.Button]:
+def build_analyze_tab(
+    db: CallCenterDB,
+) -> tuple[gr.Audio, gr.Textbox, gr.Textbox, gr.Button]:
     with gr.Tab("🔍 Analyze Call"):
-        gr.Markdown("Upload a call recording (WAV/MP3/FLAC/M4A, ≤50 MB, "
-                    "≤60 min) or record with your microphone.")
+        gr.Markdown(
+            "Upload a call recording (WAV/MP3/FLAC/M4A, ≤50 MB, "
+            "≤60 min) or record with your microphone."
+        )
         with gr.Row():
-            audio = gr.Audio(sources=["upload", "microphone"],
-                             type="filepath", label="Call audio")
+            audio = gr.Audio(
+                sources=["upload", "microphone"], type="filepath", label="Call audio"
+            )
         with gr.Row():
             caller_id = gr.Textbox(label="Caller ID (optional)")
             department = gr.Textbox(label="Department (optional)")
@@ -107,7 +122,6 @@ def build_analyze_tab(db: CallCenterDB) -> tuple[gr.Audio, gr.Textbox,
         btn.click(
             fn=lambda a, c, d: analyze_call(a, c, d, db),
             inputs=[audio, caller_id, department],
-            outputs=[status_md, transcript_md, summary_md, qa_md,
-                     pdf_file, json_file],
+            outputs=[status_md, transcript_md, summary_md, qa_md, pdf_file, json_file],
         )
     return audio, caller_id, department, btn

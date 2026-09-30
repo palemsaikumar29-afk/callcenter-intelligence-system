@@ -5,6 +5,7 @@ and timeout ALL come from the environment — nothing is hardcoded. When no
 key is configured for the selected provider, the factory reports offline
 mode and callers use clearly-labelled deterministic fallbacks.
 """
+
 from __future__ import annotations
 
 import time
@@ -74,8 +75,7 @@ def get_llm():
             timeout=settings.groq_timeout,
         )
     raise ValueError(
-        f"unsupported LLM_PROVIDER={provider!r}; "
-        f"choose one of {SUPPORTED_PROVIDERS}"
+        f"unsupported LLM_PROVIDER={provider!r}; choose one of {SUPPORTED_PROVIDERS}"
     )
 
 
@@ -98,7 +98,7 @@ def call_llm_with_retry(prompt: str, max_attempts: int | None = None) -> str:
         except Exception as exc:  # noqa: BLE001 - retry then surface
             last = exc
             if attempt < attempts - 1:
-                time.sleep(settings.llm_backoff_base * (2 ** attempt))
+                time.sleep(settings.llm_backoff_base * (2**attempt))
     raise last  # type: ignore[misc]
 
 
@@ -116,7 +116,7 @@ def with_node_retry(fn: Callable[..., Any], *, attempts: int | None = None):
             except Exception as exc:  # noqa: BLE001
                 last = exc
                 if attempt < tries - 1:
-                    time.sleep(settings.llm_backoff_base * (2 ** attempt))
+                    time.sleep(settings.llm_backoff_base * (2**attempt))
         raise last  # type: ignore[misc]
 
     return wrapper

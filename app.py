@@ -4,6 +4,7 @@ Serves the Gradio UI at http://localhost:7860 (CC_HOST/CC_PORT to change).
 The Whisper model is loaded ONCE here at startup as a module-level singleton
 — never inside a request handler. All secrets come from the environment.
 """
+
 from __future__ import annotations
 
 import logging
@@ -26,11 +27,10 @@ def main() -> None:
             transcription_svc.preload_model()
             log.info("whisper model preloaded")
         except RuntimeError as exc:
-            log.warning("whisper preload failed (transcription will error): %s",
-                        exc)
-    build_app(db).launch(server_name=settings.app_host,
-                         server_port=settings.app_port,
-                         share=False)
+            log.warning("whisper preload failed (transcription will error): %s", exc)
+    build_app(db).launch(
+        server_name=settings.app_host, server_port=settings.app_port, share=False
+    )
 
 
 if __name__ == "__main__":

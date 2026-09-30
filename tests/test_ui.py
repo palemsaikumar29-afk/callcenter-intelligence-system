@@ -1,4 +1,5 @@
 """Gradio UI: app builds, both tabs exist, handlers behave."""
+
 import gradio as gr
 import pytest
 
@@ -21,8 +22,7 @@ def _all_components(block):
 
 def test_both_tabs_present(db):
     demo = ui_app.build_app(db)
-    labels = [c.label for c in _all_components(demo)
-              if isinstance(c, gr.Tab)]
+    labels = [c.label for c in _all_components(demo) if isinstance(c, gr.Tab)]
     assert any("Analyze" in (l or "") for l in labels)
     assert any("Observability" in (l or "") for l in labels)
 
@@ -51,8 +51,14 @@ def test_observability_renders(db):
     md, df, ls = observability_tab.render_metrics(db)
     assert "Calls completed" in md
     assert "LangSmith" in ls
-    assert list(df.columns) == ["event_id", "timestamp", "call_id",
-                                "stage", "status", "detail"]
+    assert list(df.columns) == [
+        "event_id",
+        "timestamp",
+        "call_id",
+        "stage",
+        "status",
+        "detail",
+    ]
 
 
 def test_observability_reflects_db(db):
@@ -64,7 +70,8 @@ def test_observability_reflects_db(db):
 def test_format_helpers():
     assert analyze_tab._fmt_transcript(None).startswith("_No transcript")
     md = analyze_tab._fmt_transcript(
-        {"segments": [{"speaker": "Agent", "start": 0.0, "text": "hi"}]})
+        {"segments": [{"speaker": "Agent", "start": 0.0, "text": "hi"}]}
+    )
     assert "**Agent**" in md
     assert analyze_tab._fmt_summary(None).startswith("_No summary")
     assert analyze_tab._fmt_qa(None).startswith("_No QA")
@@ -79,24 +86,28 @@ def test_analyze_happy_path_end_to_end(db, tmp_path, monkeypatch, reports_dir):
         "src.services.transcription.transcribe_file",
         lambda path, db=None: {
             "segments": [
-                {"start": 0.0, "end": 2.0, "speaker": "Agent",
-                 "text": "Hello"},
-                {"start": 3.0, "end": 5.0, "speaker": "Customer",
-                 "text": "My bill is wrong"},
+                {"start": 0.0, "end": 2.0, "speaker": "Agent", "text": "Hello"},
+                {
+                    "start": 3.0,
+                    "end": 5.0,
+                    "speaker": "Customer",
+                    "text": "My bill is wrong",
+                },
             ],
             "full_text": "Agent: Hello Customer: My bill is wrong",
             "language": "en",
             "cached": False,
-        })
+        },
+    )
 
     def fake_llm(prompt):
         return QA_JSON if "QA auditor" in prompt else SUMMARY_JSON
 
-    monkeypatch.setattr("src.services.llm_factory.call_llm_with_retry",
-                        fake_llm)
+    monkeypatch.setattr("src.services.llm_factory.call_llm_with_retry", fake_llm)
     p = make_wav(str(tmp_path / "ui.wav"))
-    header, transcript_md, summary_md, qa_md, pdf_path, json_path = \
+    header, transcript_md, summary_md, qa_md, pdf_path, json_path = (
         analyze_tab.analyze_call(p, "42", "billing", db)
+    )
     assert header.startswith("✅")
     assert "**Customer**" in transcript_md
     assert "Billing dispute" in summary_md

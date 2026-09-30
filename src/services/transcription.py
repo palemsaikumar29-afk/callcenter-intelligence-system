@@ -8,6 +8,7 @@ inference again.
 GPU auto-detection: CUDA -> float16, otherwise CPU int8 quantization.
 VAD filtering is always on to drop silence.
 """
+
 from __future__ import annotations
 
 import threading
@@ -58,9 +59,7 @@ def get_model() -> WhisperModel:
                     )
                 except Exception as exc:  # pragma: no cover - env dependent
                     _MODEL_UNAVAILABLE = str(exc)
-                    raise RuntimeError(
-                        f"whisper model unavailable: {exc}"
-                    ) from exc
+                    raise RuntimeError(f"whisper model unavailable: {exc}") from exc
     return _MODEL
 
 
@@ -115,9 +114,7 @@ def transcribe_file(path: str, db=None) -> dict[str, Any]:
         for s in raw_segments
     ]
     segments = diarize(segments)
-    full_text = " ".join(
-        f"{s['speaker']}: {s['text']}" for s in segments
-    )
+    full_text = " ".join(f"{s['speaker']}: {s['text']}" for s in segments)
     transcript = {
         "segments": segments,
         "full_text": full_text,

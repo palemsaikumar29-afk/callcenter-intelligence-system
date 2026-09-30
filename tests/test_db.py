@@ -1,10 +1,10 @@
 """SQLite layer: schema, append-only audit log, cache, records, metrics."""
+
 import pytest
 
 
 def test_tables_created(db):
-    cur = db._conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table'")
+    cur = db._conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
     names = {r[0] for r in cur.fetchall()}
     assert {"call_records", "audit_log", "transcription_cache"} <= names
 
@@ -25,8 +25,7 @@ def test_recent_events_limit(db):
 
 
 def test_cache_put_get_roundtrip(db):
-    t = {"segments": [], "full_text": "hello", "language": "en",
-         "cached": False}
+    t = {"segments": [], "full_text": "hello", "language": "en", "cached": False}
     assert db.cache_get("abc") is None
     db.cache_put("abc", t)
     assert db.cache_get("abc")["full_text"] == "hello"
@@ -39,14 +38,21 @@ def test_cache_overwrite(db):
 
 
 def test_save_and_get_call_record(db):
-    db.save_call_record({
-        "call_id": "r1", "caller_id": "42", "department": "billing",
-        "audio_sha256": "s" * 64, "duration_sec": 12.5, "status": "report",
-        "summary": {"purpose": "p"}, "qa": {"overall_score": 4.0,
-                                            "compliance_flags": ["x", "y"]},
-        "transcript": {"full_text": "t"}, "report": {"call_id": "r1"},
-        "report_pdf_path": "/tmp/r1.pdf",
-    })
+    db.save_call_record(
+        {
+            "call_id": "r1",
+            "caller_id": "42",
+            "department": "billing",
+            "audio_sha256": "s" * 64,
+            "duration_sec": 12.5,
+            "status": "report",
+            "summary": {"purpose": "p"},
+            "qa": {"overall_score": 4.0, "compliance_flags": ["x", "y"]},
+            "transcript": {"full_text": "t"},
+            "report": {"call_id": "r1"},
+            "report_pdf_path": "/tmp/r1.pdf",
+        }
+    )
     rec = db.get_call_record("r1")
     assert rec["status"] == "report"
     assert rec["summary_json"]["purpose"] == "p"
@@ -59,12 +65,20 @@ def test_get_missing_record(db):
 
 def test_metrics_aggregation(db):
     def rec(cid, status, score=None, flags=()):
-        db.save_call_record({
-            "call_id": cid, "audio_sha256": "s" * 64, "duration_sec": 1.0,
-            "status": status,
-            "qa": ({"overall_score": score, "compliance_flags": list(flags)}
-                   if score is not None else None),
-        })
+        db.save_call_record(
+            {
+                "call_id": cid,
+                "audio_sha256": "s" * 64,
+                "duration_sec": 1.0,
+                "status": status,
+                "qa": (
+                    {"overall_score": score, "compliance_flags": list(flags)}
+                    if score is not None
+                    else None
+                ),
+            }
+        )
+
     rec("a", "report", 4.0, ["late greeting"])
     rec("b", "report", 5.0, [])
     rec("c", "supervisor_review", 2.0, ["CRITICAL: data leak"])

@@ -1,4 +1,5 @@
 """LLM factory: provider switching via env, offline mode, retry/backoff."""
+
 import pytest
 
 from src.services import llm_factory
@@ -80,6 +81,7 @@ def test_retry_exhausted_reraises(monkeypatch):
 def test_offline_not_retried(monkeypatch):
     def boom():
         raise llm_factory.LLMOffline("no key")
+
     monkeypatch.setattr(llm_factory, "get_llm", boom)
     with pytest.raises(llm_factory.LLMOffline):
         llm_factory.call_llm_with_retry("hi")
@@ -140,8 +142,7 @@ def test_get_llm_groq_with_key(monkeypatch):
 
 
 def test_call_llm_happy_path(monkeypatch):
-    monkeypatch.setattr(llm_factory, "get_llm",
-                        lambda: _StubLLM(["hello world"]))
+    monkeypatch.setattr(llm_factory, "get_llm", lambda: _StubLLM(["hello world"]))
     assert llm_factory.call_llm_with_retry("hi") == "hello world"
 
 

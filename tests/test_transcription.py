@@ -1,4 +1,5 @@
 """Transcription service: singleton model, SHA-256 cache, diarization."""
+
 from types import SimpleNamespace
 
 import pytest
@@ -64,13 +65,12 @@ def test_transcribe_cache_hit_skips_model(db, fake_model, tmp_path):
 def test_diarization_heuristic():
     segs = [
         {"start": 0.0, "end": 2.0, "text": "a"},
-        {"start": 2.2, "end": 4.0, "text": "b"},   # 0.2s gap -> same speaker
-        {"start": 6.5, "end": 8.0, "text": "c"},   # 2.5s gap -> flip
-        {"start": 8.1, "end": 9.0, "text": "d"},   # 0.1s gap -> same
+        {"start": 2.2, "end": 4.0, "text": "b"},  # 0.2s gap -> same speaker
+        {"start": 6.5, "end": 8.0, "text": "c"},  # 2.5s gap -> flip
+        {"start": 8.1, "end": 9.0, "text": "d"},  # 0.1s gap -> same
     ]
     out = tsvc.diarize(segs)
-    assert [s["speaker"] for s in out] == ["Agent", "Agent",
-                                          "Customer", "Customer"]
+    assert [s["speaker"] for s in out] == ["Agent", "Agent", "Customer", "Customer"]
 
 
 def test_diarization_first_is_agent():
@@ -87,6 +87,7 @@ def test_full_text_has_speaker_labels(db, fake_model, tmp_path):
 def test_detect_device_cpu_without_torch(monkeypatch):
     monkeypatch.setitem(__import__("sys").modules, "torch", None)
     import builtins
+
     real_import = builtins.__import__
 
     def fake_import(name, *a, **k):

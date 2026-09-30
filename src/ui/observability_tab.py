@@ -4,6 +4,7 @@ Auto-refreshes when the tab is selected, plus a manual refresh button.
 Shows totals, success rate, average QA score, compliance flags, the 20 most
 recent audit-log events, and LangSmith configuration status.
 """
+
 from __future__ import annotations
 
 import gradio as gr
@@ -26,18 +27,25 @@ def render_metrics(db: CallCenterDB) -> tuple[str, pd.DataFrame, str]:
         f"- **Total compliance flags:** {m['total_compliance_flags']}\n"
     )
     events = db.recent_events(20)
-    df = pd.DataFrame(events, columns=["event_id", "timestamp", "call_id",
-                                       "stage", "status", "detail"])
-    langsmith = ("✅ configured" if settings.langsmith_configured
-                 else "⚠️ not configured (set LANGSMITH_API_KEY)")
+    df = pd.DataFrame(
+        events,
+        columns=["event_id", "timestamp", "call_id", "stage", "status", "detail"],
+    )
+    langsmith = (
+        "✅ configured"
+        if settings.langsmith_configured
+        else "⚠️ not configured (set LANGSMITH_API_KEY)"
+    )
     return md, df, f"**LangSmith:** {langsmith}"
 
 
 def build_observability_tab(db: CallCenterDB) -> tuple[gr.Tab, gr.Button]:
     tab = gr.Tab("📊 Observability")
     with tab:
-        gr.Markdown("Live view of pipeline health. Refreshes automatically "
-                    "when you open this tab.")
+        gr.Markdown(
+            "Live view of pipeline health. Refreshes automatically "
+            "when you open this tab."
+        )
         refresh_btn = gr.Button("🔄 Refresh metrics")
         metrics_md = gr.Markdown()
         langsmith_md = gr.Markdown()
@@ -47,10 +55,8 @@ def build_observability_tab(db: CallCenterDB) -> tuple[gr.Tab, gr.Button]:
         def _refresh():
             return render_metrics(db)
 
-        refresh_btn.click(fn=_refresh,
-                          outputs=[metrics_md, events_df, langsmith_md])
-        tab.select(fn=_refresh,
-                   outputs=[metrics_md, events_df, langsmith_md])
+        refresh_btn.click(fn=_refresh, outputs=[metrics_md, events_df, langsmith_md])
+        tab.select(fn=_refresh, outputs=[metrics_md, events_df, langsmith_md])
 
         # initial paint
         md0, df0, ls0 = render_metrics(db)

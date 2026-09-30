@@ -1,6 +1,5 @@
 """Audio intake validation: magic bytes, limits, metadata PII scan."""
 
-
 from src.services import audio as audio_svc
 from tests.conftest import make_wav
 
@@ -8,6 +7,7 @@ from tests.conftest import make_wav
 def _wav_bytes(seconds=1.0):
     import io
     import wave
+
     buf = io.BytesIO()
     with wave.open(buf, "wb") as w:
         w.setnchannels(1)
@@ -22,8 +22,7 @@ def test_detect_wav():
 
 
 def test_detect_mp3_id3():
-    assert audio_svc.detect_format(
-        b"ID3\x04\x00\x00\x00\x00\x00\x00\x00\x00") == "mp3"
+    assert audio_svc.detect_format(b"ID3\x04\x00\x00\x00\x00\x00\x00\x00\x00") == "mp3"
 
 
 def test_detect_mp3_frame_sync():
@@ -65,7 +64,8 @@ def test_reject_non_audio(tmp_path):
 
 def test_reject_missing_file(tmp_path):
     _fmt, _dur, _digest, _pii, err = audio_svc.validate_audio(
-        str(tmp_path / "nope.wav"))
+        str(tmp_path / "nope.wav")
+    )
     assert err == "file not found"
 
 
@@ -90,14 +90,14 @@ def test_sha256_stable(tmp_path):
 
 
 def test_metadata_pii_email():
-    hits = audio_svc.scan_metadata_pii("call_jane.doe@example.com.wav",
-                                       b"RIFF\x00\x00\x00WAVE")
+    hits = audio_svc.scan_metadata_pii(
+        "call_jane.doe@example.com.wav", b"RIFF\x00\x00\x00WAVE"
+    )
     assert "email" in hits
 
 
 def test_metadata_pii_phone():
-    hits = audio_svc.scan_metadata_pii("call.wav",
-                                       b"RIFF 555-123-4567 WAVE")
+    hits = audio_svc.scan_metadata_pii("call.wav", b"RIFF 555-123-4567 WAVE")
     assert "phone" in hits
 
 
@@ -107,8 +107,10 @@ def test_metadata_pii_ssn():
 
 
 def test_metadata_clean():
-    assert audio_svc.scan_metadata_pii("call_2026-09-26.wav",
-                                       b"RIFF\x00\x00\x00WAVE") == []
+    assert (
+        audio_svc.scan_metadata_pii("call_2026-09-26.wav", b"RIFF\x00\x00\x00WAVE")
+        == []
+    )
 
 
 def test_duration_wav(tmp_path):

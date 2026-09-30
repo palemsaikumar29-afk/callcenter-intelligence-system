@@ -4,6 +4,7 @@ The audit log is append-only — events are inserted, never updated or deleted.
 All access is serialized through a module-level lock so the Gradio server's
 threads share one connection safely.
 """
+
 from __future__ import annotations
 
 import json
@@ -63,8 +64,7 @@ class CallCenterDB:
             self._conn.commit()
 
     # -- audit log (append-only) -------------------------------------------------
-    def log_event(self, call_id: str, stage: str, status: str,
-                  detail: str = "") -> int:
+    def log_event(self, call_id: str, stage: str, status: str, detail: str = "") -> int:
         with self._lock:
             cur = self._conn.execute(
                 "INSERT INTO audit_log (timestamp, call_id, stage, status, detail)"
@@ -118,9 +118,13 @@ class CallCenterDB:
                     record["audio_sha256"],
                     record["duration_sec"],
                     record["status"],
-                    json.dumps(record.get("summary")) if record.get("summary") else None,
+                    json.dumps(record.get("summary"))
+                    if record.get("summary")
+                    else None,
                     json.dumps(record.get("qa")) if record.get("qa") else None,
-                    json.dumps(record.get("transcript")) if record.get("transcript") else None,
+                    json.dumps(record.get("transcript"))
+                    if record.get("transcript")
+                    else None,
                     json.dumps(record.get("report")) if record.get("report") else None,
                     record.get("report_pdf_path"),
                 ),
@@ -143,7 +147,8 @@ class CallCenterDB:
     def metrics(self) -> dict[str, Any]:
         with self._lock:
             total = self._conn.execute(
-                "SELECT COUNT(*) c FROM call_records").fetchone()["c"]
+                "SELECT COUNT(*) c FROM call_records"
+            ).fetchone()["c"]
             completed = self._conn.execute(
                 "SELECT COUNT(*) c FROM call_records WHERE status='report'"
             ).fetchone()["c"]

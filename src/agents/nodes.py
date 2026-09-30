@@ -6,6 +6,7 @@ injection stages run BEFORE any LLM call so tainted text never reaches a
 model. QA's overall score is ALWAYS recomputed deterministically in Python
 after the LLM responds — the model's own overall_score is discarded.
 """
+
 from __future__ import annotations
 
 import json
@@ -51,10 +52,10 @@ def _audit(call_id: str, stage: str, status: str, detail: str = "") -> None:
     _db().log_event(call_id, stage, status, detail)
 
 
-def _fail(state: PipelineState, stage: str, message: str,
-          retryable: bool = False) -> dict[str, Any]:
-    err = PipelineError(
-        stage=stage, message=message, retryable=retryable).model_dump()
+def _fail(
+    state: PipelineState, stage: str, message: str, retryable: bool = False
+) -> dict[str, Any]:
+    err = PipelineError(stage=stage, message=message, retryable=retryable).model_dump()
     _audit(state["call_id"], stage, "error", message)
     return {"status": "error", "error": err}
 
@@ -64,16 +65,30 @@ def intake_node(state: PipelineState) -> dict[str, Any]:
     call_id = state["call_id"]
     _audit(call_id, "intake", "started", state["audio_path"])
     fmt, duration, digest, pii_meta, error = audio_svc.validate_audio(
-        state["audio_path"])
+        state["audio_path"]
+    )
     if error:
         return _fail(state, "intake", error)
-    _audit(call_id, "intake", "ok",
-           f"format={fmt} duration={duration:.1f}s sha256={digest[:12]}…")
+    _audit(
+        call_id,
+        "intake",
+        "ok",
+        f"format={fmt} duration={duration:.1f}s sha256={digest[:12]}…",
+    )
     if pii_meta:
-        _audit(call_id, "intake", "flagged",
-               f"PII detected in file metadata: {', '.join(pii_meta)}")
-    intake = IntakeResult(valid=True, format=fmt, duration_sec=duration,
-                          sha256=digest, pii_in_metadata=pii_meta)
+        _audit(
+            call_id,
+            "intake",
+            "flagged",
+            f"PII detected in file metadata: {', '.join(pii_meta)}",
+        )
+    intake = IntakeResult(
+        valid=True,
+        format=fmt,
+        duration_sec=duration,
+        sha256=digest,
+        pii_in_metadata=pii_meta,
+    )
     return {
         "audio_format": fmt,
         "duration_sec": duration,
@@ -92,8 +107,12 @@ def transcribe_node(state: PipelineState) -> dict[str, Any]:
     except RuntimeError as exc:
         return _fail(state, "transcribe", str(exc), retryable=True)
     transcript = Transcript(**raw)
-    _audit(call_id, "transcribe", "ok",
-           f"{len(transcript.segments)} segments cached={transcript.cached}")
+    _audit(
+        call_id,
+        "transcribe",
+        "ok",
+        f"{len(transcript.segments)} segments cached={transcript.cached}",
+    )
     return {"transcript": transcript.model_dump()}
 
 
@@ -103,13 +122,16 @@ def injection_node(state: PipelineState) -> dict[str, Any]:
     text = state["transcript"]["full_text"]
     _audit(call_id, "injection_check", "started", "")
     malicious, matched = injection_svc.scan_for_injection(text)
-    result = {"is_malicious": malicious, "matched_patterns": matched,
-              "blocked": malicious}
+    result = {
+        "is_malicious": malicious,
+        "matched_patterns": matched,
+        "blocked": malicious,
+    }
     if malicious:
-        _audit(call_id, "injection_check", "blocked",
-               f"patterns={','.join(matched)}")
-        out = _fail(state, "injection_check",
-                    f"prompt injection blocked: {', '.join(matched)}")
+        _audit(call_id, "injection_check", "blocked", f"patterns={','.join(matched)}")
+        out = _fail(
+            state, "injection_check", f"prompt injection blocked: {', '.join(matched)}"
+        )
         out["injection"] = result
         return out
     _audit(call_id, "injection_check", "ok", "clean")
@@ -124,13 +146,14 @@ def redact_node(state: PipelineState) -> dict[str, Any]:
     redacted_text, text_counts = pii_svc.redact_text(t["full_text"])
     redacted_segments, seg_counts = pii_svc.redact_segments(t["segments"])
     totals = {k: text_counts.get(k, 0) for k in text_counts}
-    result = RedactionResult(redacted_text=redacted_text,
-                             redacted_segments=[
-                                 TranscriptSegment(**s).model_dump()
-                                 for s in redacted_segments],
-                             counts=totals)
-    _audit(call_id, "redact", "ok",
-           f"redacted={totals} segment_spans={seg_counts}")
+    result = RedactionResult(
+        redacted_text=redacted_text,
+        redacted_segments=[
+            TranscriptSegment(**s).model_dump() for s in redacted_segments
+        ],
+        counts=totals,
+    )
+    _audit(call_id, "redact", "ok", f"redacted={totals} segment_spans={seg_counts}")
     return {"redaction": result.model_dump()}
 
 
@@ -153,8 +176,11 @@ def _offline_summary(text: str) -> CallSummary:
     """Deterministic extractive summary, clearly labelled offline."""
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     customer_lines = [ln for ln in lines if ln.startswith("Customer:")]
-    purpose = (customer_lines[0][len("Customer:"):].strip()
-               if customer_lines else (lines[0] if lines else ""))
+    purpose = (
+        customer_lines[0][len("Customer:") :].strip()
+        if customer_lines
+        else (lines[0] if lines else "")
+    )
     return CallSummary(
         purpose="[OFFLINE] " + purpose[:200],
         key_points=["[OFFLINE] " + ln[:160] for ln in lines[1:5]],
@@ -166,8 +192,7 @@ def _offline_summary(text: str) -> CallSummary:
 
 
 def _parse_summary_json(raw: str) -> dict[str, Any]:
-    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(),
-                     flags=re.IGNORECASE)
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.IGNORECASE)
     return json.loads(cleaned)
 
 
@@ -179,15 +204,19 @@ def summarize_node(state: PipelineState) -> dict[str, Any]:
     try:
         raw = llm_factory.call_llm_with_retry(_SUMMARY_PROMPT.format(transcript=text))
         summary = CallSummary(**_parse_summary_json(raw))
-        _audit(call_id, "summarize", "ok",
-               f"provider={llm_factory.provider_status()[0]}")
+        _audit(
+            call_id, "summarize", "ok", f"provider={llm_factory.provider_status()[0]}"
+        )
     except llm_factory.LLMOffline:
         summary = _offline_summary(text)
         _audit(call_id, "summarize", "ok", "offline fallback (no LLM key)")
     except (ValueError, json.JSONDecodeError, KeyError) as exc:
-        return _fail(state, "summarize",
-                     f"LLM returned invalid summary JSON: {exc}",
-                     retryable=True)
+        return _fail(
+            state,
+            "summarize",
+            f"LLM returned invalid summary JSON: {exc}",
+            retryable=True,
+        )
     return {"summary": summary.model_dump()}
 
 
@@ -206,11 +235,18 @@ Transcript:
 
 
 def _offline_qa() -> QAScore:
-    dims = [QADimension(name=d["name"], score=3, weight=d["weight"],
-                        rationale="[OFFLINE] neutral placeholder — no LLM key")
-            for d in QA_DIMENSIONS]
-    return QAScore(dimensions=dims, overall_score=3.0,
-                   compliance_flags=[], offline=True)
+    dims = [
+        QADimension(
+            name=d["name"],
+            score=3,
+            weight=d["weight"],
+            rationale="[OFFLINE] neutral placeholder — no LLM key",
+        )
+        for d in QA_DIMENSIONS
+    ]
+    return QAScore(
+        dimensions=dims, overall_score=3.0, compliance_flags=[], offline=True
+    )
 
 
 def recompute_overall(dimensions: list[dict[str, Any]]) -> float:
@@ -226,8 +262,9 @@ def qa_node(state: PipelineState) -> dict[str, Any]:
     try:
         raw = llm_factory.call_llm_with_retry(
             _QA_PROMPT.format(
-                transcript=text,
-                dimensions=", ".join(d["name"] for d in QA_DIMENSIONS)))
+                transcript=text, dimensions=", ".join(d["name"] for d in QA_DIMENSIONS)
+            )
+        )
         parsed = _parse_summary_json(raw)
         dims = []
         weights = {d["name"]: d["weight"] for d in QA_DIMENSIONS}
@@ -235,26 +272,43 @@ def qa_node(state: PipelineState) -> dict[str, Any]:
             name = item["name"]
             if name not in weights:
                 raise ValueError(f"unexpected dimension {name!r}")
-            dims.append(QADimension(name=name, score=int(item["score"]),
-                                    weight=weights[name],
-                                    rationale=str(item.get("rationale", ""))))
+            dims.append(
+                QADimension(
+                    name=name,
+                    score=int(item["score"]),
+                    weight=weights[name],
+                    rationale=str(item.get("rationale", "")),
+                )
+            )
         overall = recompute_overall([d.model_dump() for d in dims])
-        qa = QAScore(dimensions=dims, overall_score=overall,
-                     compliance_flags=list(parsed.get("compliance_flags", [])))
-        _audit(call_id, "qa_score", "ok",
-               f"overall={overall} flags={len(qa.compliance_flags)}")
+        qa = QAScore(
+            dimensions=dims,
+            overall_score=overall,
+            compliance_flags=list(parsed.get("compliance_flags", [])),
+        )
+        _audit(
+            call_id,
+            "qa_score",
+            "ok",
+            f"overall={overall} flags={len(qa.compliance_flags)}",
+        )
     except llm_factory.LLMOffline:
         qa = _offline_qa()
         _audit(call_id, "qa_score", "ok", "offline fallback (no LLM key)")
     except (ValueError, json.JSONDecodeError, KeyError) as exc:
-        return _fail(state, "qa_score",
-                     f"LLM returned invalid QA JSON: {exc}", retryable=True)
+        return _fail(
+            state, "qa_score", f"LLM returned invalid QA JSON: {exc}", retryable=True
+        )
 
     critical = any("critical" in f.lower() for f in qa.compliance_flags)
     update: dict[str, Any] = {"qa": qa.model_dump()}
     if critical:
-        _audit(call_id, "qa_score", "flagged",
-               "critical compliance flag -> supervisor review")
+        _audit(
+            call_id,
+            "qa_score",
+            "flagged",
+            "critical compliance flag -> supervisor review",
+        )
         update["status"] = "supervisor_review"
     return update
 
@@ -266,6 +320,15 @@ def report_node(state: PipelineState) -> dict[str, Any]:
     created = datetime.now(timezone.utc).isoformat()
     status = state.get("status", "processing")
     final_status = "supervisor_review" if status == "supervisor_review" else "report"
+    # Report artifacts (JSON/PDF) and the UI transcript tab must show the
+    # REDACTED transcript — never raw PII — under the "PII redacted" label.
+    redacted = state["redaction"]
+    transcript = Transcript(
+        segments=redacted["redacted_segments"],
+        full_text=redacted["redacted_text"],
+        language=state["transcript"].get("language", "en"),
+        cached=state["transcript"].get("cached", False),
+    )
     report = CallReport(
         call_id=call_id,
         caller_id=state.get("caller_id"),
@@ -275,29 +338,33 @@ def report_node(state: PipelineState) -> dict[str, Any]:
         created_at=created,
         summary=CallSummary(**state["summary"]),
         qa=QAScore(**state["qa"]),
-        transcript=Transcript(**state["transcript"]),
+        transcript=transcript,
         redaction_counts=state["redaction"]["counts"],
         status=final_status,
     )
     paths = report_gen.write_report_files(report.model_dump())
-    _db().save_call_record({
-        "call_id": call_id,
-        "created_at": created,
-        "caller_id": state.get("caller_id"),
-        "department": state.get("department"),
-        "audio_sha256": state["audio_sha256"],
-        "duration_sec": state["duration_sec"],
-        "status": final_status,
-        "summary": report.summary.model_dump(),
-        "qa": report.qa.model_dump(),
-        "transcript": report.transcript.model_dump(),
+    _db().save_call_record(
+        {
+            "call_id": call_id,
+            "created_at": created,
+            "caller_id": state.get("caller_id"),
+            "department": state.get("department"),
+            "audio_sha256": state["audio_sha256"],
+            "duration_sec": state["duration_sec"],
+            "status": final_status,
+            "summary": report.summary.model_dump(),
+            "qa": report.qa.model_dump(),
+            "transcript": report.transcript.model_dump(),
+            "report": report.model_dump(),
+            "report_pdf_path": paths["pdf_path"],
+        }
+    )
+    _audit(call_id, "report", "ok", f"pdf={paths['pdf_path']} status={final_status}")
+    return {
         "report": report.model_dump(),
-        "report_pdf_path": paths["pdf_path"],
-    })
-    _audit(call_id, "report", "ok",
-           f"pdf={paths['pdf_path']} status={final_status}")
-    return {"report": report.model_dump(), "report_paths": paths,
-            "status": final_status}
+        "report_paths": paths,
+        "status": final_status,
+    }
 
 
 def error_node(state: PipelineState) -> dict[str, Any]:
@@ -305,18 +372,21 @@ def error_node(state: PipelineState) -> dict[str, Any]:
     call_id = state["call_id"]
     err = state.get("error") or {}
     try:
-        _db().save_call_record({
-            "call_id": call_id,
-            "caller_id": state.get("caller_id"),
-            "department": state.get("department"),
-            "audio_sha256": state.get("audio_sha256", ""),
-            "duration_sec": state.get("duration_sec", 0.0),
-            "status": "error",
-            "summary": None, "qa": None,
-            "transcript": state.get("transcript"),
-            "report": {"error": err},
-            "report_pdf_path": None,
-        })
+        _db().save_call_record(
+            {
+                "call_id": call_id,
+                "caller_id": state.get("caller_id"),
+                "department": state.get("department"),
+                "audio_sha256": state.get("audio_sha256", ""),
+                "duration_sec": state.get("duration_sec", 0.0),
+                "status": "error",
+                "summary": None,
+                "qa": None,
+                "transcript": state.get("transcript"),
+                "report": {"error": err},
+                "report_pdf_path": None,
+            }
+        )
     except Exception:  # noqa: BLE001,S110 - error path must never raise
         pass
     return {"status": "error"}

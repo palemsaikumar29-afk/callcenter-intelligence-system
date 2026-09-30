@@ -39,10 +39,9 @@ def test_card_requires_luhn():
 
 
 def test_multiple_kinds_right_to_left():
-    text = (f"ssn 123-45-6789, card {CARD}, mail a@b.com, phone 555-123-4567.")
+    text = f"ssn 123-45-6789, card {CARD}, mail a@b.com, phone 555-123-4567."
     out, counts = pii_svc.redact_text(text)
-    assert out == ("ssn [SSN], card [CREDIT_CARD], mail [EMAIL], "
-                   "phone [PHONE].")
+    assert out == ("ssn [SSN], card [CREDIT_CARD], mail [EMAIL], phone [PHONE].")
     assert sum(counts.values()) == 4
 
 
@@ -54,10 +53,18 @@ def test_no_pii_unchanged():
 
 def test_redact_segments():
     segs = [
-        {"start": 0.0, "end": 2.0, "speaker": "Agent",
-         "text": "Your SSN 123-45-6789 please"},
-        {"start": 3.0, "end": 5.0, "speaker": "Customer",
-         "text": "It's fine, no PII here"},
+        {
+            "start": 0.0,
+            "end": 2.0,
+            "speaker": "Agent",
+            "text": "Your SSN 123-45-6789 please",
+        },
+        {
+            "start": 3.0,
+            "end": 5.0,
+            "speaker": "Customer",
+            "text": "It's fine, no PII here",
+        },
     ]
     out, totals = pii_svc.redact_segments(segs)
     assert out[0]["text"] == "Your SSN [SSN] please"

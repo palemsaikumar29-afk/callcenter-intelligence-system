@@ -1,4 +1,5 @@
 """Shared fixtures for the Call Center Intelligence test suite."""
+
 from __future__ import annotations
 
 import os
@@ -59,10 +60,22 @@ SAMPLE_TRANSCRIPT = (
 )
 
 SAMPLE_SEGMENTS = [
-    {"start": 0.0, "end": 3.2, "speaker": "Agent",
-     "text": "Thank you for calling Acme Support."},
-    {"start": 4.5, "end": 8.1, "speaker": "Customer",
-     "text": "My bill is wrong, I was charged too much."},
-    {"start": 9.0, "end": 14.0, "speaker": "Agent",
-     "text": "I've issued a $40 credit to your account."},
+    {
+        "start": 0.0,
+        "end": 3.2,
+        "speaker": "Agent",
+        "text": "Thank you for calling Acme Support.",
+    },
+    {
+        "start": 4.5,
+        "end": 8.1,
+        "speaker": "Customer",
+        "text": "My bill is wrong, I was charged too much.",
+    },
+    {
+        "start": 9.0,
+        "end": 14.0,
+        "speaker": "Agent",
+        "text": "I've issued a $40 credit to your account.",
+    },
 ]

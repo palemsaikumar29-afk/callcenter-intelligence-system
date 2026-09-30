@@ -9,6 +9,7 @@ Flow:
 Terminal outcomes: report | supervisor_review | error.
 Failures are isolated to the error node — no stage can crash the graph.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -31,9 +32,11 @@ def _after_injection(state: PipelineState) -> Literal["redact", "error"]:
 def _after_qa(state: PipelineState) -> Literal["report_clean", "report_flagged"]:
     # Critical compliance flag -> supervisor review; the report is still
     # generated so the supervisor has the full scorecard to review.
-    return ("report_flagged"
-            if state.get("status") == "supervisor_review"
-            else "report_clean")
+    return (
+        "report_flagged"
+        if state.get("status") == "supervisor_review"
+        else "report_clean"
+    )
 
 
 def build_pipeline():
@@ -48,24 +51,29 @@ def build_pipeline():
     g.add_node("error", nodes.error_node)
 
     g.set_entry_point("intake")
-    g.add_conditional_edges("intake", _after_intake,
-                            {"transcribe": "transcribe", "error": "error"})
+    g.add_conditional_edges(
+        "intake", _after_intake, {"transcribe": "transcribe", "error": "error"}
+    )
     g.add_edge("transcribe", "injection_check")
-    g.add_conditional_edges("injection_check", _after_injection,
-                            {"redact": "redact", "error": "error"})
+    g.add_conditional_edges(
+        "injection_check", _after_injection, {"redact": "redact", "error": "error"}
+    )
     g.add_edge("redact", "summarize")
     g.add_edge("summarize", "qa_score")
-    g.add_conditional_edges("qa_score", _after_qa,
-                            {"report_clean": "report",
-                             "report_flagged": "report"})
+    g.add_conditional_edges(
+        "qa_score", _after_qa, {"report_clean": "report", "report_flagged": "report"}
+    )
     g.add_edge("report", END)
     g.add_edge("error", END)
     return g.compile()
 
 
-def run_pipeline(audio_path: str, db: CallCenterDB,
-                 caller_id: str | None = None,
-                 department: str | None = None) -> dict[str, Any]:
+def run_pipeline(
+    audio_path: str,
+    db: CallCenterDB,
+    caller_id: str | None = None,
+    department: str | None = None,
+) -> dict[str, Any]:
     """Run the full 7-stage pipeline for one call. Returns the final state."""
     nodes.set_db(db)
     call_id = nodes.new_call_id()

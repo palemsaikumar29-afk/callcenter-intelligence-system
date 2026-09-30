@@ -3,6 +3,7 @@
 Reports are written under the configured reports directory and the paths
 are persisted on the call record in SQLite.
 """
+
 from __future__ import annotations
 
 import io
@@ -31,8 +32,9 @@ def build_report_pdf(report: dict[str, Any]) -> bytes:
     )
 
     buf = io.BytesIO()
-    doc = SimpleDocTemplate(buf, pagesize=letter,
-                            leftMargin=0.75 * inch, rightMargin=0.75 * inch)
+    doc = SimpleDocTemplate(
+        buf, pagesize=letter, leftMargin=0.75 * inch, rightMargin=0.75 * inch
+    )
     styles = getSampleStyleSheet()
     story = []
 
@@ -56,26 +58,37 @@ def build_report_pdf(report: dict[str, Any]) -> bytes:
 
     p("Summary", "Heading2")
     p(f"<b>Purpose:</b> {summary.get('purpose', '')}")
-    p("<b>Key points:</b><br/>" + "<br/>".join(
-        f"• {kp}" for kp in summary.get("key_points", [])) or "—")
-    p("<b>Action items:</b><br/>" + "<br/>".join(
-        f"• {a}" for a in summary.get("action_items", [])) or "—")
+    p(
+        "<b>Key points:</b><br/>"
+        + "<br/>".join(f"• {kp}" for kp in summary.get("key_points", []))
+        or "—"
+    )
+    p(
+        "<b>Action items:</b><br/>"
+        + "<br/>".join(f"• {a}" for a in summary.get("action_items", []))
+        or "—"
+    )
     p(f"<b>Sentiment:</b> {summary.get('sentiment', '')}")
 
     p("QA Scorecard", "Heading2")
     rows = [["Dimension", "Score (1-5)", "Weight", "Rationale"]]
     for d in qa.get("dimensions", []):
-        rows.append([d["name"], str(d["score"]),
-                     f"{d['weight']:.0%}", d.get("rationale", "")])
+        rows.append(
+            [d["name"], str(d["score"]), f"{d['weight']:.0%}", d.get("rationale", "")]
+        )
     rows.append(["OVERALL", f"{qa.get('overall_score', 0):.2f}", "100%", ""])
     table = Table(rows, colWidths=[2.2 * inch, 1.0 * inch, 0.8 * inch, 3.0 * inch])
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f2937")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("FONTSIZE", (0, 0), (-1, -1), 9),
-    ]))
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f2937")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ]
+        )
+    )
     story.append(table)
     story.append(Spacer(1, 6))
     flags = qa.get("compliance_flags", [])
@@ -83,15 +96,16 @@ def build_report_pdf(report: dict[str, Any]) -> bytes:
 
     p("Transcript (PII redacted)", "Heading2")
     for seg in transcript.get("segments", []):
-        p(f"<b>{seg.get('speaker', '?')} "
-          f"[{seg.get('start', 0):.1f}s]:</b> {seg.get('text', '')}")
+        p(
+            f"<b>{seg.get('speaker', '?')} "
+            f"[{seg.get('start', 0):.1f}s]:</b> {seg.get('text', '')}"
+        )
 
     doc.build(story)
     return buf.getvalue()
 
 
-def write_report_files(report: dict[str, Any],
-                       reports_dir: str = "") -> dict[str, str]:
+def write_report_files(report: dict[str, Any], reports_dir: str = "") -> dict[str, str]:
     """Write <call_id>.json and <call_id>.pdf; return their paths."""
     target = reports_dir or settings.reports_dir
     os.makedirs(target, exist_ok=True)

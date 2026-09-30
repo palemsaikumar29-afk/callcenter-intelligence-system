@@ -5,6 +5,7 @@ never by the file extension. Supported: WAV, MP3, FLAC, M4A.
 Files over the size limit or duration limit are rejected.
 File metadata (name + header text) is scanned for PII.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -50,9 +51,20 @@ def _duration_via_ffprobe(path: str) -> float | None:
         return None
     try:
         out = subprocess.run(
-            [ffprobe, "-v", "error", "-show_entries", "format=duration",
-             "-of", "csv=p=0", path],
-            capture_output=True, text=True, timeout=30, check=False,
+            [
+                ffprobe,
+                "-v",
+                "error",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "csv=p=0",
+                path,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
         )
         return float(out.stdout.strip()) if out.stdout.strip() else None
     except (subprocess.SubprocessError, ValueError):
@@ -80,7 +92,9 @@ def audio_duration_sec(path: str, fmt: str) -> float | None:
 # PII patterns reused for the metadata scan (lightweight subset)
 _PII_PATTERNS = {
     "email": re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
-    "phone": re.compile(r"(?<!\d)(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}(?!\d)"),
+    "phone": re.compile(
+        r"(?<!\d)(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}(?!\d)"
+    ),
     "ssn": re.compile(r"(?<!\d)\d{3}-\d{2}-\d{4}(?!\d)"),
 }
 
@@ -91,7 +105,9 @@ def scan_metadata_pii(filename: str, header: bytes) -> list[str]:
     return [kind for kind, pat in _PII_PATTERNS.items() if pat.search(text)]
 
 
-def validate_audio(path: str) -> tuple[str | None, float | None, str, list[str], str | None]:
+def validate_audio(
+    path: str,
+) -> tuple[str | None, float | None, str, list[str], str | None]:
     """Validate an audio file.
 
     Returns (format, duration_sec, sha256, pii_in_metadata, error).
@@ -101,25 +117,40 @@ def validate_audio(path: str) -> tuple[str | None, float | None, str, list[str],
         return None, None, "", [], "file not found"
     size = os.path.getsize(path)
     if size > settings.max_audio_mb * 1024 * 1024:
-        return None, None, "", [], (
-            f"file too large: {size / 1024 / 1024:.1f} MB "
-            f"(limit {settings.max_audio_mb:.0f} MB)"
+        return (
+            None,
+            None,
+            "",
+            [],
+            (
+                f"file too large: {size / 1024 / 1024:.1f} MB "
+                f"(limit {settings.max_audio_mb:.0f} MB)"
+            ),
         )
     with open(path, "rb") as f:
         header = f.read(12)
     fmt = detect_format(header)
     if fmt is None:
-        return None, None, "", [], (
-            "unsupported audio format: magic bytes do not match "
-            "WAV/MP3/FLAC/M4A"
+        return (
+            None,
+            None,
+            "",
+            [],
+            ("unsupported audio format: magic bytes do not match WAV/MP3/FLAC/M4A"),
         )
     duration = audio_duration_sec(path, fmt)
     if duration is None:
         return None, None, "", [], "could not determine audio duration"
     if duration > settings.max_audio_minutes * 60:
-        return None, None, "", [], (
-            f"audio too long: {duration / 60:.1f} min "
-            f"(limit {settings.max_audio_minutes:.0f} min)"
+        return (
+            None,
+            None,
+            "",
+            [],
+            (
+                f"audio too long: {duration / 60:.1f} min "
+                f"(limit {settings.max_audio_minutes:.0f} min)"
+            ),
         )
     digest = sha256_of_file(path)
     pii = scan_metadata_pii(os.path.basename(path), header)

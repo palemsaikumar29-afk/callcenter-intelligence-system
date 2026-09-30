@@ -1,4 +1,5 @@
 """App startup: `python app.py` serves HTTP on the configured port."""
+
 import os
 import socket
 import subprocess
@@ -27,18 +28,24 @@ def _wait_for_port(port: int, timeout: float = 90.0) -> bool:
 def test_app_serves_on_port(tmp_path):
     port = 17861
     db_path = str(tmp_path / "calls.db")
-    env = dict(os.environ,
-               CC_PORT=str(port),
-               CC_DB_PATH=db_path,
-               CC_PRELOAD_MODEL="0",  # skip weight download in this test
-               PYTHONPATH=ROOT)
+    env = dict(
+        os.environ,
+        CC_PORT=str(port),
+        CC_DB_PATH=db_path,
+        CC_PRELOAD_MODEL="0",  # skip weight download in this test
+        PYTHONPATH=ROOT,
+    )
     proc = subprocess.Popen(
-        [sys.executable, "app.py"], cwd=ROOT, env=env,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        [sys.executable, "app.py"],
+        cwd=ROOT,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
     try:
         assert _wait_for_port(port), "app did not start listening in time"
-        with urllib.request.urlopen(f"http://127.0.0.1:{port}/",
-                                    timeout=15) as resp:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=15) as resp:
             body = resp.read().decode("utf-8", errors="ignore")
         assert resp.status == 200
         assert "gradio" in body.lower()
