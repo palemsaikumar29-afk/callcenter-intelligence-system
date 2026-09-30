@@ -121,7 +121,8 @@ class Settings:
 
     @property
     def app_port(self) -> int:
-        return _get_int("CC_PORT", 7860)
+        # Render/HF set PORT; local override via CC_PORT.
+        return _get_int("PORT", _get_int("CC_PORT", 7860))
 
     # -- Observability ----------------------------------------------------------
     @property

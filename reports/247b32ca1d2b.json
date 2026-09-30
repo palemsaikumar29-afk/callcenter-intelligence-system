@@ -1,0 +1,140 @@
+{
+  "call_id": "247b32ca1d2b",
+  "caller_id": "caller-123",
+  "department": "claims",
+  "audio_sha256": "6b00bc63b654208d7766c00282be7cfaf54e436e7d265d1d35942e5f466ea5ed",
+  "duration_sec": 48.792,
+  "created_at": "2026-09-30T20:22:25.660567+00:00",
+  "summary": {
+    "purpose": "[OFFLINE] Agent: Thank you for calling Acme Insurance Claims Department. Agent: This is Sarah. How can I help you today? Agent: Hi, Sarah. I'm calling about my claim. My name is John Smith and my phone number i",
+    "key_points": [],
+    "action_items": [],
+    "sentiment": "neutral",
+    "entities": [],
+    "offline": true
+  },
+  "qa": {
+    "dimensions": [
+      {
+        "name": "Greeting & Professionalism",
+        "score": 3,
+        "weight": 0.15,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Problem Resolution",
+        "score": 3,
+        "weight": 0.3,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Communication Clarity",
+        "score": 3,
+        "weight": 0.2,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Compliance & Policy Adherence",
+        "score": 3,
+        "weight": 0.25,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Empathy & Customer Experience",
+        "score": 3,
+        "weight": 0.1,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      }
+    ],
+    "overall_score": 3.0,
+    "compliance_flags": [],
+    "offline": true
+  },
+  "transcript": {
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 2.48,
+        "speaker": "Agent",
+        "text": "Thank you for calling Acme Insurance Claims Department."
+      },
+      {
+        "start": 2.48,
+        "end": 4.64,
+        "speaker": "Agent",
+        "text": "This is Sarah. How can I help you today?"
+      },
+      {
+        "start": 4.64,
+        "end": 13.44,
+        "speaker": "Agent",
+        "text": "Hi, Sarah. I'm calling about my claim. My name is John Smith and my phone number is [PHONE]."
+      },
+      {
+        "start": 13.44,
+        "end": 17.76,
+        "speaker": "Agent",
+        "text": "Thanks, John. For verification, can you please confirm your social security number?"
+      },
+      {
+        "start": 17.76,
+        "end": 23.52,
+        "speaker": "Agent",
+        "text": "Sure. It's [SSN]."
+      },
+      {
+        "start": 23.52,
+        "end": 27.84,
+        "speaker": "Agent",
+        "text": "Got it. Thank you. I can see your claim here. What seems to be the issue?"
+      },
+      {
+        "start": 27.84,
+        "end": 31.92,
+        "speaker": "Agent",
+        "text": "The payment hasn't arrived yet, and it's been two weeks since it was approved."
+      },
+      {
+        "start": 31.92,
+        "end": 36.24,
+        "speaker": "Agent",
+        "text": "I apologize for the delay. Let me escalate this to our payments team right away,"
+      },
+      {
+        "start": 36.24,
+        "end": 40.16,
+        "speaker": "Agent",
+        "text": "and they'll follow up within 24 hours. That would be great. Thank you."
+      },
+      {
+        "start": 40.16,
+        "end": 43.12,
+        "speaker": "Agent",
+        "text": "You're welcome. Is there anything else I can help with today?"
+      },
+      {
+        "start": 43.12,
+        "end": 45.76,
+        "speaker": "Agent",
+        "text": "No, that's everything. Thanks for your help."
+      },
+      {
+        "start": 45.76,
+        "end": 50.4,
+        "speaker": "Agent",
+        "text": "Thank you for calling Acme Insurance. Have a great day."
+      }
+    ],
+    "full_text": "Agent: Thank you for calling Acme Insurance Claims Department. Agent: This is Sarah. How can I help you today? Agent: Hi, Sarah. I'm calling about my claim. My name is John Smith and my phone number is [PHONE]. Agent: Thanks, John. For verification, can you please confirm your social security number? Agent: Sure. It's [SSN]. Agent: Got it. Thank you. I can see your claim here. What seems to be the issue? Agent: The payment hasn't arrived yet, and it's been two weeks since it was approved. Agent: I apologize for the delay. Let me escalate this to our payments team right away, Agent: and they'll follow up within 24 hours. That would be great. Thank you. Agent: You're welcome. Is there anything else I can help with today? Agent: No, that's everything. Thanks for your help. Agent: Thank you for calling Acme Insurance. Have a great day.",
+    "language": "en",
+    "cached": false
+  },
+  "redaction_counts": {
+    "ssn": 0,
+    "ssn_dictated": 1,
+    "email": 0,
+    "phone": 1,
+    "card": 0
+  },
+  "status": "report"
+}
