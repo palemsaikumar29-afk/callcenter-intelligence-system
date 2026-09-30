@@ -1,0 +1,121 @@
+{
+  "call_id": "9a1ecd725ce9",
+  "caller_id": "CALL-TEST-003",
+  "department": "Billing",
+  "audio_sha256": "64d3a4143e6270a83a568274ebe2bfd0bd1fb47ee149321f190d5f7407c8365e",
+  "duration_sec": 32.568,
+  "created_at": "2026-09-30T19:06:54.836241+00:00",
+  "summary": {
+    "purpose": "[OFFLINE] Agent: Thank you for calling Northwin Telecom. This is Priya. How can I help? Agent: I'm really unhappy. I was charged twice in my last bill, $90 each time. I want a refund. Agent: I understand. That ",
+    "key_points": [],
+    "action_items": [],
+    "sentiment": "neutral",
+    "entities": [],
+    "offline": true
+  },
+  "qa": {
+    "dimensions": [
+      {
+        "name": "Greeting & Professionalism",
+        "score": 3,
+        "weight": 0.15,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Problem Resolution",
+        "score": 3,
+        "weight": 0.3,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Communication Clarity",
+        "score": 3,
+        "weight": 0.2,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Compliance & Policy Adherence",
+        "score": 3,
+        "weight": 0.25,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Empathy & Customer Experience",
+        "score": 3,
+        "weight": 0.1,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      }
+    ],
+    "overall_score": 3.0,
+    "compliance_flags": [],
+    "offline": true
+  },
+  "transcript": {
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 4.08,
+        "speaker": "Agent",
+        "text": "Thank you for calling Northwin Telecom. This is Priya. How can I help?"
+      },
+      {
+        "start": 4.08,
+        "end": 10.24,
+        "speaker": "Agent",
+        "text": "I'm really unhappy. I was charged twice in my last bill, $90 each time. I want a refund."
+      },
+      {
+        "start": 10.24,
+        "end": 14.88,
+        "speaker": "Agent",
+        "text": "I understand. That is frustrating. Let me look into the duplicate charge right away."
+      },
+      {
+        "start": 14.88,
+        "end": 18.0,
+        "speaker": "Agent",
+        "text": "This is the third time I am calling about this."
+      },
+      {
+        "start": 18.0,
+        "end": 23.12,
+        "speaker": "Agent",
+        "text": "I apologize for the trouble. I've issued a refund of $90 to your original payment method."
+      },
+      {
+        "start": 23.12,
+        "end": 25.68,
+        "speaker": "Agent",
+        "text": "It should arrive in three to five business days."
+      },
+      {
+        "start": 25.68,
+        "end": 27.68,
+        "speaker": "Agent",
+        "text": "Thank you. I appreciate it."
+      },
+      {
+        "start": 27.84,
+        "end": 30.48,
+        "speaker": "Agent",
+        "text": "You're welcome. Is there anything else I can do for you?"
+      },
+      {
+        "start": 30.48,
+        "end": 32.48,
+        "speaker": "Agent",
+        "text": "No, that is everything. Goodbye."
+      }
+    ],
+    "full_text": "Agent: Thank you for calling Northwin Telecom. This is Priya. How can I help? Agent: I'm really unhappy. I was charged twice in my last bill, $90 each time. I want a refund. Agent: I understand. That is frustrating. Let me look into the duplicate charge right away. Agent: This is the third time I am calling about this. Agent: I apologize for the trouble. I've issued a refund of $90 to your original payment method. Agent: It should arrive in three to five business days. Agent: Thank you. I appreciate it. Agent: You're welcome. Is there anything else I can do for you? Agent: No, that is everything. Goodbye.",
+    "language": "en",
+    "cached": false
+  },
+  "redaction_counts": {
+    "ssn": 0,
+    "email": 0,
+    "phone": 0,
+    "card": 0
+  },
+  "status": "report"
+}

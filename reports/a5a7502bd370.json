@@ -1,0 +1,115 @@
+{
+  "call_id": "a5a7502bd370",
+  "caller_id": "CALL-TEST-001",
+  "department": "Support",
+  "audio_sha256": "a74878bd0b5473db9d4b6b7a122631ef12447bd13b32f18d556ce821af4b5076",
+  "duration_sec": 45.144,
+  "created_at": "2026-09-30T19:05:44.944628+00:00",
+  "summary": {
+    "purpose": "[OFFLINE] Agent: Thank you for calling Acme Broadband Support. This is Daniel. How can I help you today? Agent: Hi Daniel. My internet keeps dropping every evening around 8pm. It's really frustrating. Agent: I'",
+    "key_points": [],
+    "action_items": [],
+    "sentiment": "neutral",
+    "entities": [],
+    "offline": true
+  },
+  "qa": {
+    "dimensions": [
+      {
+        "name": "Greeting & Professionalism",
+        "score": 3,
+        "weight": 0.15,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Problem Resolution",
+        "score": 3,
+        "weight": 0.3,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Communication Clarity",
+        "score": 3,
+        "weight": 0.2,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Compliance & Policy Adherence",
+        "score": 3,
+        "weight": 0.25,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      },
+      {
+        "name": "Empathy & Customer Experience",
+        "score": 3,
+        "weight": 0.1,
+        "rationale": "[OFFLINE] neutral placeholder — no LLM key"
+      }
+    ],
+    "overall_score": 3.0,
+    "compliance_flags": [],
+    "offline": true
+  },
+  "transcript": {
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 4.88,
+        "speaker": "Agent",
+        "text": "Thank you for calling Acme Broadband Support. This is Daniel. How can I help you today?"
+      },
+      {
+        "start": 4.88,
+        "end": 10.08,
+        "speaker": "Agent",
+        "text": "Hi Daniel. My internet keeps dropping every evening around 8pm. It's really frustrating."
+      },
+      {
+        "start": 10.08,
+        "end": 14.8,
+        "speaker": "Agent",
+        "text": "I'm sorry to hear that. Let me run a line test on your connection. Can I confirm your email"
+      },
+      {
+        "start": 14.8,
+        "end": 25.76,
+        "speaker": "Agent",
+        "text": "on the account first? Sure. It's Maria.SantoSatExample.com. My mobile number is 3125550147."
+      },
+      {
+        "start": 25.76,
+        "end": 30.64,
+        "speaker": "Agent",
+        "text": "Thanks. The line test shows noise on your street node. I can book a technician visit for tomorrow"
+      },
+      {
+        "start": 30.64,
+        "end": 37.04,
+        "speaker": "Agent",
+        "text": "between 9 and 12. That works for me. Will there be a charge? No charge. It's a network side issue."
+      },
+      {
+        "start": 37.04,
+        "end": 42.24,
+        "speaker": "Agent",
+        "text": "So the visit is free. You'll get an SMS confirmation shortly. Great. Thank you so much for the"
+      },
+      {
+        "start": 42.24,
+        "end": 44.88,
+        "speaker": "Agent",
+        "text": "quick help. You're welcome. Have a good day."
+      }
+    ],
+    "full_text": "Agent: Thank you for calling Acme Broadband Support. This is Daniel. How can I help you today? Agent: Hi Daniel. My internet keeps dropping every evening around 8pm. It's really frustrating. Agent: I'm sorry to hear that. Let me run a line test on your connection. Can I confirm your email Agent: on the account first? Sure. It's Maria.SantoSatExample.com. My mobile number is 3125550147. Agent: Thanks. The line test shows noise on your street node. I can book a technician visit for tomorrow Agent: between 9 and 12. That works for me. Will there be a charge? No charge. It's a network side issue. Agent: So the visit is free. You'll get an SMS confirmation shortly. Great. Thank you so much for the Agent: quick help. You're welcome. Have a good day.",
+    "language": "en",
+    "cached": false
+  },
+  "redaction_counts": {
+    "ssn": 0,
+    "email": 0,
+    "phone": 1,
+    "card": 0
+  },
+  "status": "report"
+}

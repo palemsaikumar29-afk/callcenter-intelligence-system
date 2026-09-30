@@ -11,6 +11,10 @@ import re
 
 _PATTERNS = {
     "ssn": re.compile(r"(?<!\d)\d{3}-\d{2}-\d{4}(?!\d)"),
+    # SSN dictated digit-by-digit ("07-8-05-1-1-2-0"): 9 digits with optional
+    # separators, as Whisper transcribes spoken digit sequences. The span
+    # dedup drops it when contained in a longer card-number match.
+    "ssn_dictated": re.compile(r"(?<!\d)(?:\d[-.\s]?){8}\d(?!\d)"),
     "email": re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
     "phone": re.compile(
         r"(?<!\d)(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}(?!\d)"
@@ -21,6 +25,7 @@ _PATTERNS = {
 
 _TOKENS = {
     "ssn": "[SSN]",
+    "ssn_dictated": "[SSN]",
     "email": "[EMAIL]",
     "phone": "[PHONE]",
     "card": "[CREDIT_CARD]",
