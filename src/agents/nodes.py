@@ -5,10 +5,15 @@ LLM-backed nodes (summarize, qa) retry with exponential backoff; PII and
 injection stages run BEFORE any LLM call so tainted text never reaches a
 model. QA's overall score is ALWAYS recomputed deterministically in Python
 after the LLM responds — the model's own overall_score is discarded.
+Every stage is wrapped in @_isolated: any unexpected exception (malformed
+model reply after retries, network timeout, missing Whisper model, corrupt
+state) becomes a recorded stage failure routed to the terminal error node
+instead of crashing the run.
 """
 
 from __future__ import annotations
 
+import functools
 import json
 import re
 import uuid
@@ -60,7 +65,41 @@ def _fail(
     return {"status": "error", "error": err}
 
 
+def _isolated(stage: str):
+    """Decorator: turn any unexpected exception into a recorded stage failure.
+
+    The error is logged via _fail() and the node returns status="error" so
+    the graph routes to the terminal error node — the pipeline ends as a
+    recorded failed call instead of crashing. Applied OUTSIDE
+    @llm_factory.with_node_retry so transient errors are still retried first.
+    """
+
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(state: PipelineState) -> dict[str, Any]:
+            try:
+                return fn(state)
+            except Exception as exc:  # noqa: BLE001 - isolation boundary
+                message = f"unexpected {type(exc).__name__}: {exc}"
+                try:
+                    return _fail(state, stage, message, retryable=False)
+                except Exception:  # noqa: BLE001 - the error path must never raise
+                    return {
+                        "status": "error",
+                        "error": {
+                            "stage": stage,
+                            "message": message,
+                            "retryable": False,
+                        },
+                    }
+
+        return wrapper
+
+    return decorator
+
+
 # -- Stage 1: Intake ---------------------------------------------------------------
+@_isolated("intake")
 def intake_node(state: PipelineState) -> dict[str, Any]:
     call_id = state["call_id"]
     _audit(call_id, "intake", "started", state["audio_path"])
@@ -99,6 +138,7 @@ def intake_node(state: PipelineState) -> dict[str, Any]:
 
 
 # -- Stage 2: Transcription ----------------------------------------------------------
+@_isolated("transcribe")
 def transcribe_node(state: PipelineState) -> dict[str, Any]:
     call_id = state["call_id"]
     _audit(call_id, "transcribe", "started", "")
@@ -117,6 +157,7 @@ def transcribe_node(state: PipelineState) -> dict[str, Any]:
 
 
 # -- Stage 3: Prompt-injection detection (BEFORE any LLM call) -------------------------
+@_isolated("injection_check")
 def injection_node(state: PipelineState) -> dict[str, Any]:
     call_id = state["call_id"]
     text = state["transcript"]["full_text"]
@@ -139,6 +180,7 @@ def injection_node(state: PipelineState) -> dict[str, Any]:
 
 
 # -- Stage 4: PII redaction (BEFORE any LLM call) ---------------------------------------
+@_isolated("redact")
 def redact_node(state: PipelineState) -> dict[str, Any]:
     call_id = state["call_id"]
     _audit(call_id, "redact", "started", "")
@@ -196,6 +238,7 @@ def _parse_summary_json(raw: str) -> dict[str, Any]:
     return json.loads(cleaned)
 
 
+@_isolated("summarize")
 @llm_factory.with_node_retry
 def summarize_node(state: PipelineState) -> dict[str, Any]:
     call_id = state["call_id"]
@@ -254,6 +297,7 @@ def recompute_overall(dimensions: list[dict[str, Any]]) -> float:
     return round(sum(d["score"] * d["weight"] for d in dimensions), 2)
 
 
+@_isolated("qa_score")
 @llm_factory.with_node_retry
 def qa_node(state: PipelineState) -> dict[str, Any]:
     call_id = state["call_id"]
@@ -314,6 +358,7 @@ def qa_node(state: PipelineState) -> dict[str, Any]:
 
 
 # -- Stage 7: Report -------------------------------------------------------------------------
+@_isolated("report")
 def report_node(state: PipelineState) -> dict[str, Any]:
     call_id = state["call_id"]
     _audit(call_id, "report", "started", "")

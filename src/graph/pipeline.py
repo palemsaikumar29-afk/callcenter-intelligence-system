@@ -1,13 +1,15 @@
 """LangGraph pipeline: 7 sequential stages with conditional routing.
 
 Flow:
-    intake -> (ok) transcribe -> injection_check -> (clean) redact
-           -> summarize -> qa_score -> (clean|flagged) report -> END
-    intake -> (invalid) error -> END
-    injection_check -> (blocked) error -> END
+    intake -> (ok) transcribe -> (ok) injection_check -> (clean) redact
+           -> (ok) summarize -> (ok) qa_score -> (clean|flagged) report -> END
+    any stage -> (error) error -> END
 
 Terminal outcomes: report | supervisor_review | error.
-Failures are isolated to the error node — no stage can crash the graph.
+Every stage is gated on the error status: a stage that records a failure
+routes straight to the terminal error node, which persists the failed call
+record — no stage can crash the graph, and a failed stage never lets later
+stages run on its missing output.
 """
 
 from __future__ import annotations
@@ -21,17 +23,28 @@ from ..database.db import CallCenterDB
 from .state import PipelineState, new_state
 
 
-def _after_intake(state: PipelineState) -> Literal["transcribe", "error"]:
-    return "error" if state.get("status") == "error" else "transcribe"
+def _after_stage(ok_target: str):
+    """Router factory: go to the error node if the stage failed, else continue.
+
+    Applied after EVERY stage so a recorded failure can never flow into a
+    later stage that would run on its missing output.
+    """
+
+    def _router(state: PipelineState) -> str:
+        return "error" if state.get("status") == "error" else ok_target
+
+    _router.__name__ = f"after_stage_to_{ok_target}"
+    return _router
 
 
-def _after_injection(state: PipelineState) -> Literal["redact", "error"]:
-    return "error" if state.get("status") == "error" else "redact"
-
-
-def _after_qa(state: PipelineState) -> Literal["report_clean", "report_flagged"]:
-    # Critical compliance flag -> supervisor review; the report is still
-    # generated so the supervisor has the full scorecard to review.
+def _after_qa(
+    state: PipelineState,
+) -> Literal["error", "report_clean", "report_flagged"]:
+    # A failed QA stage must not reach the report node (the summary/score it
+    # needs is missing). Critical compliance flag -> supervisor review; the
+    # report is still generated so the supervisor has the full scorecard.
+    if state.get("status") == "error":
+        return "error"
     return (
         "report_flagged"
         if state.get("status") == "supervisor_review"
@@ -52,18 +65,40 @@ def build_pipeline():
 
     g.set_entry_point("intake")
     g.add_conditional_edges(
-        "intake", _after_intake, {"transcribe": "transcribe", "error": "error"}
+        "intake",
+        _after_stage("transcribe"),
+        {"transcribe": "transcribe", "error": "error"},
     )
-    g.add_edge("transcribe", "injection_check")
     g.add_conditional_edges(
-        "injection_check", _after_injection, {"redact": "redact", "error": "error"}
+        "transcribe",
+        _after_stage("injection_check"),
+        {"injection_check": "injection_check", "error": "error"},
     )
-    g.add_edge("redact", "summarize")
-    g.add_edge("summarize", "qa_score")
     g.add_conditional_edges(
-        "qa_score", _after_qa, {"report_clean": "report", "report_flagged": "report"}
+        "injection_check",
+        _after_stage("redact"),
+        {"redact": "redact", "error": "error"},
     )
-    g.add_edge("report", END)
+    g.add_conditional_edges(
+        "redact",
+        _after_stage("summarize"),
+        {"summarize": "summarize", "error": "error"},
+    )
+    g.add_conditional_edges(
+        "summarize",
+        _after_stage("qa_score"),
+        {"qa_score": "qa_score", "error": "error"},
+    )
+    g.add_conditional_edges(
+        "qa_score",
+        _after_qa,
+        {"report_clean": "report", "report_flagged": "report", "error": "error"},
+    )
+    g.add_conditional_edges(
+        "report",
+        _after_stage(END),
+        {END: END, "error": "error"},
+    )
     g.add_edge("error", END)
     return g.compile()
 
